@@ -1,4 +1,4 @@
-require "faraday"
+require "net/http"
 
 module Akamai
   module Core
@@ -24,22 +24,33 @@ module Akamai
         private
 
         def request(method, path, body = nil)
-          response_body = Response.new(
-            http_client.send(method) do |request|
-              request.url path
-              request.headers["Content-Type"] = "application/json"
-              request.headers["Authorization"] = authorization(method, path, body)
+          response = Response.new(
+            "".tap do |raw_response|
+              http_client.start do |session|
+                headers = {
+                  "Authorization" => authorization(method, path, body),
+                  "Content-Type" => "application/json"
+                }
+                raw_response = if /^get$/ =~ method
+                                 session.send(method, path, headers)
+                               else
+                                 session.send(method, path, body, headers)
+                               end
+              end
+              break raw_response
             end
-          ).body
+          )
 
-          Error.new(response_body).tap do |error|
+          Error.new(response.body).tap do |error|
             error.raise_error if error.exist?
           end
-          response_body
+          response
         end
 
         def http_client
-          @http_client ||= Faraday.new("#{protocol}://#{host}")
+          @http_client ||= Net::HTTP.new(uri.host, uri.port).tap do |http|
+            http.use_ssl = !!ssl
+          end
         end
 
         def protocol
@@ -51,6 +62,10 @@ module Akamai
             client: self, method: method.upcase, protocol: protocol,
             host: host, path: path, body: body
           ).publish_authorization
+        end
+
+        def uri
+          @uri ||= URI("#{protocol}://#{host}")
         end
       end
     end
