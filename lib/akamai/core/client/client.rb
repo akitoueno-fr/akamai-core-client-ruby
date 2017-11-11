@@ -13,25 +13,42 @@ module Akamai
           @ssl = ssl
         end
 
-        def get(path)
-          request("get", path)
+        def get(path, headers = nil)
+          request("get", path, nil, headers)
         end
 
-        def post(path, body = nil)
-          request("post", path, body)
+        def post(path, body = nil, headers = nil)
+          request("post", path, body, headers)
+        end
+
+        def put(path, body = nil, headers = nil)
+          request("put", path, body, headers)
+        end
+
+        def patch(path, body = nil, headers = nil)
+          request("patch", path, body, headers)
+        end
+
+        def delete(path, headers = nil)
+          request("delete", path, nil, headers)
+        end
+
+        def head(path, headers = nil)
+          request("head", path, nil, headers)
         end
 
         private
 
-        def request(method, path, body = nil)
+        def request(method, path, body = nil, optional_headers = nil)
           response = Response.new(
             "".tap do |raw_response|
               http_client.start do |session|
                 headers = {
-                  "Authorization" => authorization(method, path, body),
+                  "Authorization" => authorization(method, path, body,
+                                                   optional_headers),
                   "Content-Type" => "application/json"
-                }
-                raw_response = if /^get$/ =~ method
+                }.merge(optional_headers ? optional_headers : {})
+                raw_response = if /^get$|^delete$|^head$/ =~ method
                                  session.send(method, path, headers)
                                else
                                  session.send(method, path, body, headers)
@@ -57,10 +74,10 @@ module Akamai
           ssl ? "https" : "http"
         end
 
-        def authorization(method, path, body = nil)
+        def authorization(method, path, body = nil, headers = nil)
           Authority.new(
             client: self, method: method.upcase, protocol: protocol,
-            host: host, path: path, body: body
+            host: host, path: path, body: body, headers: headers
           ).publish_authorization
         end
 

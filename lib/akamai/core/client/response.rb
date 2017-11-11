@@ -8,7 +8,7 @@ module Akamai
         end
 
         def body
-          @body ||= 
+          @body ||= if http_response.body
             JSON.parse(http_response.body).tap do |parsed_body|
               result =
                 if /^Array$/ =~ parsed_body.class.name
@@ -21,6 +21,20 @@ module Akamai
                   transform_data(parsed_body)
                 end
                 break result
+            end
+          end
+        end
+
+        def code
+          http_response.code.to_i
+        end
+
+        def headers
+          @headers ||=
+            {}.tap do |hash|
+              http_response.header.each do |k, v|
+                hash[k] = v
+              end
             end
         end
 
