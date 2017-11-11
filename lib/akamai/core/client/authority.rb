@@ -46,7 +46,9 @@ module Akamai
             %w(method protocol host path).each do |k|
               arr << params[k]
             end
-            # ToDo: Option Header #
+            # Although Akamai's document tell us to use header informations in creating signature, "
+            # Probably Akamai use header informations to authenticate api request #
+            # For now I set blank. #
             arr << ""
             arr << body_hash
             arr << authorization_seed 
@@ -61,11 +63,23 @@ module Akamai
         end
 
         def nonce
-          @nonce ||= SecureRandom.uuid
+          @nonce ||=
+            (params[:nonce] || SecureRandom.uuid)
         end
 
         def timestamp
-          @timestamp ||= Time.now.utc.strftime("%Y%m%dT%H:%M:%S%z")
+          @timestamp ||=
+            (params[:timestamp] || Time.now.utc.strftime("%Y%m%dT%H:%M:%S%z"))
+        end
+
+        def canonicalized_headers
+          return "" unless params[:headers]
+          sorted_headers = Hash[params[:headers].sort]
+          [].tap do |arr|
+            sorted_headers.each do |k, v|
+              arr << (k.downcase + ":" + v.to_s.gsub(/\s{2,}/, " "))
+            end
+          end.join("\t")
         end
       end
     end
