@@ -1,8 +1,6 @@
 # Akamai::Core::Client::Ruby
-
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/akamai/core/client/ruby`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+This library provides fundamental functions to call Akamai API.  
+Using this library, you can easily request HTTP methods with akamai signature.  
 
 ## Installation
 
@@ -21,8 +19,51 @@ Or install it yourself as:
     $ gem install akamai-core-client-ruby
 
 ## Usage
+You can initialize this cient following code.  
+```ruby
+require "akamai/core/client"
+client = Akamai::Core::Client.new(
+  client_secret: "xxxxxxx_secret",
+  host: "akab-host.luna.akamaiapis.net",
+  access_token: "akab-xxxxxxxxx",
+  client_token: "akab-xxxxxxxxx"
+)
+```
 
-TODO: Write usage instructions here
+### HTTP GET
+```ruby
+response = client.get(
+  "/papi/v0/contracts/"
+)
+response.code # 200
+response.headers # {"server"=>"Apache-Coyote/1.1", "content-language"=>"en-US", "etag"=>"\"xxxxxxxxxe440d81b1a171ca579b2597587\"", "vary"=>"Accept-Encoding", "content-type"=>"text/plain", "date"=>"Sat, 11 Nov 2017 13:39:20 GMT", "connection"=>"keep-alive"}
+response.body["contracts"]["items"].each do |contract|
+  contract # {"contractId"=>"ctr_M-XXXXXX", "contractTypeName"=>"DIRECT_CUSTOMER"}
+end
+```
+
+### HTTP POST
+```ruby
+body = {
+  "cpcodeName" => "SME WAA",
+  "productId" => "prd_Web_App_Accel"
+}
+client.post("/papi/v1/cpcodes?contractId=ctr_1–1TJZFW&groupId=grp_15166", body.to_json)
+```
+
+### HTTP PUT
+```ruby
+body = {
+  "ruleFormat" => "v2015-08-08",
+  "usePrefixes" => "true"
+}
+client.put("/papi/v1/client-settings", body.to_json)
+```
+
+### HTTP HEAD
+```ruby
+client.head("/papi/v1/properties/prp_175780/versions/3/rules?contractId=ctr_1–1TJZFW&groupId=grp_15166&validateRules=true&validateMode=fast&dryRun=true")
+```
 
 ## Development
 
