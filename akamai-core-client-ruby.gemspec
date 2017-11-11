@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = %q{Akamai client}
   spec.description   = %q{Akamai client. This library provides fundamental function for calling akamai api.}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/akitoueno-fr/akamai-core-client-ruby"
   spec.license       = "MIT"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the "allowed_push_host"
