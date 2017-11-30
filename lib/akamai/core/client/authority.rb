@@ -56,7 +56,7 @@ module Akamai
         end
 
         def body_hash
-          return "" unless "post" == params[:method]
+          return "" unless "POST" == params[:method]
           Base64.strict_encode64(
             OpenSSL::Digest.new("sha256").digest(params[:body])
           )
