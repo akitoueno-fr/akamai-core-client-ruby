@@ -2,7 +2,10 @@ module Akamai
   module Core
     module Client
       class Error
-        AkamaiError = Class.new(StandardError)
+        class AkamaiError < StandardError
+          attr_accessor :body
+        end
+
         attr_reader :body
         def initialize(body)
           @body = /Array/ =~ body.class.name ? body[0] : body
@@ -13,7 +16,10 @@ module Akamai
         end
 
         def raise_error
-          raise(AkamaiError, message) if exist?
+          error = AkamaiError.new.tap do |akamai_error|
+            akamai_error.body = body
+          end
+          raise(error, message) if exist?
         end
 
         private
